@@ -1,0 +1,1 @@
+export const SHORT_URLS = { subdomain: "tiny", tld: "url" } as const
