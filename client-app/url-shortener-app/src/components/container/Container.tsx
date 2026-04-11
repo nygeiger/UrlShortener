@@ -1,12 +1,23 @@
+import { useEffect, useState } from "react";
 import FormContainer from "../form-container/FormContainer";
+import type { UrlData } from "../../interface/UrlData";
+import DataTable from "../data-table/DataTable";
+import { fetchTableData } from "../../helpers/data";
 
-interface IContainerProps {
-}
+export default function Container() {
+    const [data, setData] = useState<UrlData[]>([]);
 
-export default function Container(props: IContainerProps) {
+    const refreshTableData = async () => {
+        setData(await fetchTableData())
+    }
+
+    useEffect(() => { refreshTableData() }, [])
+
+    //TODO: Add pagination
     return (
         <>
-            <FormContainer/>
+            <FormContainer refreshTableData={refreshTableData} />
+            <DataTable data={data} refreshTableData={refreshTableData} />
         </>
     )
 }

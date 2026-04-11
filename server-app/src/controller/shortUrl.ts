@@ -9,7 +9,7 @@ const delUrlSchema = z.object({ id: z.string() })
 
 export const getAllUrl = async (req: express.Request, res: express.Response) => {
     try {
-        const shortUrls = await urlModel.find();
+        const shortUrls = await urlModel.find().sort({ createdAt: -1 });
 
         if (shortUrls.length <= 0) {
             res.status(404).send({ message: "no short urls found" });
@@ -24,7 +24,7 @@ export const getAllUrl = async (req: express.Request, res: express.Response) => 
 export const createUrl = async (req: express.Request, res: express.Response) => {
     try {
         const validReq = createUrlSchema.parse(req.body)
-        const urlFound = await urlModel.find({ validReq });
+        const urlFound = await urlModel.find({ fullUrl: validReq.fullUrl });
 
         if (urlFound.length > 0) {
             res.status(409).send(urlFound);

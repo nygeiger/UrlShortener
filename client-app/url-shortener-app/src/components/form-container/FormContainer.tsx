@@ -1,23 +1,21 @@
-import { useState, type ChangeEvent, type SubmitEventHandler } from "react"
-import axios from "axios";
-import { SERVER_URL } from "../../helpers/Constants";
+import { useState, type ChangeEvent } from "react"
+import { addUrl } from "../../helpers/data";
 
 interface IFormContainerProps {
+    refreshTableData: () => void;
 }
 
 export default function FormContainer(props: IFormContainerProps) {
+    const { refreshTableData } = props;
     const [fullUrl, setFullUrl] = useState<string>("");
+
     const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
-        try {
-            await axios.post(`${SERVER_URL}/shortUrl`, {
-                fullUrl: fullUrl
-            });
-            setFullUrl("");
-        } catch (error) {
-            console.log("Error on form container submit", error);
-        }
+        await addUrl(fullUrl);
+        setFullUrl("");
+        refreshTableData();
     }
+
     return (
         <div className="container mx-auto p-2">
             <div className="bg-[url(./src/assets/banner_bg.JPG)] my-8 rounded-xl bg-cover bg-center">
