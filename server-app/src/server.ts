@@ -7,7 +7,7 @@ import shortURL from "./routes/shortUrl.js"
 dotenv.config();
 await connectDb(); //TODO: Handle failed db connection
 const serverPort = process.env.SERVER_PORT || 4001;
-const clientPort = process.env.VITEX_CLIENT_PORT || 3000;
+const clientPort = process.env.CLIENT_PORT || 3005;
 const app = express();
 
 app.use(express.json());
