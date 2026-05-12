@@ -18,7 +18,7 @@ export default function FormContainer(props: IFormContainerProps) {
 
     return (
         <div className="container mx-auto p-2">
-            <div className="bg-[url(./src/assets/banner_bg.JPG)] my-8 rounded-xl bg-cover bg-center">
+            <div className="bg-[url(/banner_bg.JPG)] my-8 rounded-xl bg-cover bg-center">
                 <div className="w-full h-full rounded-xl p-20 backdrop-brightness-50">
                     <h2 className="pb-4 text-white text-4xl text-center">URL Shortener</h2>
                     <p className="pb-2 text-white text-center text-xl font-extralight">paste your untidy link to shorten</p>
