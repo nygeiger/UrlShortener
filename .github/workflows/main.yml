@@ -21,13 +21,13 @@ jobs:
         with:
           version: 10.24.0
 
+      - name: List files
+        run: ls
+        
       - uses: actions/setup-node@v6
         with:
           node-version: latest
           cache: 'pnpm'
-
-      - name: List files
-        run: ls
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
