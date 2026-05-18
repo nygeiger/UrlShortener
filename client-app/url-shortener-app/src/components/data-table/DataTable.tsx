@@ -2,10 +2,16 @@ import { Link } from "react-router-dom";
 import type { UrlData } from "../../interface/UrlData"
 import { SERVER_URL } from "../../helpers/Constants";
 import { deleteUrl } from "../../helpers/data";
+import SkeletonRow from "../skeleton/SkeletonRow";
+import "../skeleton/skeleton.css";
 
 interface IDataTableProps {
     data: UrlData[];
+    isLoading: boolean;
     refreshTableData: () => void;
+    currentPage: number;
+    setCurrentPage: (page: number) => void;
+    itemsPerPage: number;
 }
 
 const copyToClipboard = async (url: string) => {
@@ -20,7 +26,12 @@ const copyToClipboard = async (url: string) => {
     }
 
 export default function DataTable(props: IDataTableProps) {
-    const { data, refreshTableData } = props;
+    const { data, isLoading, refreshTableData, currentPage, setCurrentPage, itemsPerPage } = props;
+
+    const totalPages = Math.ceil(data.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const paginatedData = data.slice(startIndex, endIndex);
 
     const handleDelete = async (id: string) => {
         await deleteUrl(id);
@@ -28,7 +39,13 @@ export default function DataTable(props: IDataTableProps) {
     }
 
     const renderTableData = () => {
-        return data.map((item) => {
+        if (isLoading) {
+            return Array.from({ length: 2 }).map((_, index) => (
+                <SkeletonRow key={index} />
+            ));
+        }
+
+        return paginatedData.map((item) => {
             return (
                 <tr key={item._id} className="border-b text-white bg-gray-600 hover:bg-white hover:text-gray-800">
                     <td className="px-6 py-3">
@@ -61,18 +78,62 @@ export default function DataTable(props: IDataTableProps) {
     }
 
     return (
-        <div className="mx-4 md:container md:mx-auto pt-2 pb-10 relative overflow-x-auto shadow-sm sm:rounded-lg">
-            <table className="md:w-full table-fixed text-sm text-left rtl:text-right text-gray-500">
-                <thead className="text-md uppercase text-gray-50 bg-gray-700">
-                    <tr>
-                        <th scope="col" className="px-6 py-3 w-6/12">FullUrl</th>
-                        <th scope="col" className="px-6 py-3 w-3/12">ShortUrl</th>
-                        <th scope="col" className="px-6 py-3">Clicks</th>
-                        <th scope="col" className="px-6 py-3">Action</th>
-                    </tr>
-                </thead>
-                <tbody>{renderTableData()}</tbody>
-            </table>
+        <div className="mx-4 md:container md:mx-auto pt-2 pb-10">
+            <div className="relative overflow-x-auto shadow-sm sm:rounded-lg">
+                <table className="md:w-full table-fixed text-sm text-left rtl:text-right text-gray-500">
+                    <thead className="text-md uppercase text-gray-50 bg-gray-700">
+                        <tr>
+                            <th scope="col" className="px-6 py-3 w-6/12">FullUrl</th>
+                            <th scope="col" className="px-6 py-3 w-3/12">ShortUrl</th>
+                            <th scope="col" className="px-6 py-3">Clicks</th>
+                            <th scope="col" className="px-6 py-3">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>{renderTableData()}</tbody>
+                </table>
+            </div>
+
+            {data.length > 0 && !isLoading && (
+                <div className="flex items-center justify-center gap-4 mt-6">
+                    {currentPage > 1 && (
+                        <button
+                            onClick={() => setCurrentPage(currentPage - 1)}
+                            className="flex items-center gap-1 px-3 py-2 text-gray-400 hover:text-white transition-colors"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                                <path fillRule="evenodd" d="M11.03 3.97a.75.75 0 010 1.06L5.56 10.5h14.69a.75.75 0 010 1.5H5.56l5.47 5.47a.75.75 0 11-1.06 1.06l-6.75-6.75a.75.75 0 010-1.06l6.75-6.75a.75.75 0 011.06 0z" clipRule="evenodd" />
+                            </svg>
+                        </button>
+                    )}
+
+                    <div className="flex gap-2">
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                            <button
+                                key={page}
+                                onClick={() => setCurrentPage(page)}
+                                className={`w-8 h-8 flex items-center justify-center rounded transition-colors ${
+                                    currentPage === page
+                                        ? "bg-blue-600 text-white"
+                                        : "text-gray-400 hover:text-green-400 border border-grey-400 hover:border-green-400"
+                                }`}
+                            >
+                                {page}
+                            </button>
+                        ))}
+                    </div>
+
+                    {currentPage < totalPages && (
+                        <button
+                            onClick={() => setCurrentPage(currentPage + 1)}
+                            className="flex items-center gap-1 px-3 py-2 text-gray-400 hover:text-white transition-colors"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                                <path fillRule="evenodd" d="M12.97 3.97a.75.75 0 011.06 0l6.75 6.75a.75.75 0 010 1.06l-6.75 6.75a.75.75 0 11-1.06-1.06L18.44 12.5H3.75a.75.75 0 010-1.5h14.69l-5.47-5.47a.75.75 0 010-1.06z" clipRule="evenodd" />
+                            </svg>
+                        </button>
+                    )}
+                </div>
+            )}
         </div>
     )
 }
