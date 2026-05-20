@@ -1,5 +1,6 @@
 import { useState, type ChangeEvent } from "react"
 import { addUrl } from "../../helpers/data";
+import { useOwnerId } from "../../hooks/useOwnerId";
 
 interface IFormContainerProps {
     refreshTableData: () => void;
@@ -7,11 +8,12 @@ interface IFormContainerProps {
 
 export default function FormContainer(props: IFormContainerProps) {
     const { refreshTableData } = props;
+    const ownerId = useOwnerId();
     const [fullUrl, setFullUrl] = useState<string>("");
 
     const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
-        await addUrl(fullUrl);
+        await addUrl(fullUrl, ownerId);
         setFullUrl("");
         refreshTableData();
     }

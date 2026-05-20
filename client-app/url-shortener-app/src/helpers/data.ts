@@ -1,22 +1,22 @@
 import axios from "axios";
 import { SERVER_URL } from "./Constants";
 
-export const fetchTableData = async () => {
+export const getUserUrls = async (ownerId: string) => {
     try {
-        const response = await axios.get(`${SERVER_URL}/shortUrl`);
-        console.log("The response from the server is: ", response);
-        //TODO: Add zod validation (currently redundant - which is a good thing)
-        return response.data
+        const response = await axios.get(`${SERVER_URL}/userUrls`, {
+            params: { ownerId }
+        });
+        return response.data;
     } catch (error) {
-        console.log("Error fetching table data:", error);
+        console.log("Error fetching user urls:", error);
     }
-    return [];
 }
 
-export const addUrl = async (fullUrl: string) => {
+export const addUrl = async (fullUrl: string, ownerId: string) => {
     try {
         await axios.post(`${SERVER_URL}/shortUrl`, {
-            fullUrl: fullUrl
+            fullUrl: fullUrl,
+            ownerId: ownerId
         });
     } catch (error) {
         console.log("Error on form container submit", error);

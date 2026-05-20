@@ -15,10 +15,13 @@ const shortUrlSchema = new mongoose.Schema({
     clicks: {
         type: Number,
         default: 0
-    }
+    },
+    ownerId: { type: String, required: true, index: true },
+    expiresAt: { type: Date, required: true, index: true, expires: 0 },
 },
     {
         timestamps: true
-    });
+    }
+);
 
 export const urlModel = mongoose.model("ShortUrl", shortUrlSchema);
