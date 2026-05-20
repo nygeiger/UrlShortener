@@ -37,7 +37,7 @@ Steps in AWS
 	- severless-express
 		- To convert express to a serverless structure which aws lambda supports
 - NAT (for static IP)
-	- fckNAT [[fck-nat]]
+	- fckNAT
 		- Currently doesn't have any key requirement for logging in
 		- Currently, No EIP
 	- No-HA
