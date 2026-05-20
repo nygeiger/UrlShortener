@@ -3,27 +3,10 @@ import z from "zod"
 import { urlModel } from "../model/shortUrl.js"
 import { SHORT_URLS } from "../util.js"
 
-const createUrlSchema = z.object({
-    fullUrl: z.url(),
-    ownerId: z.uuid()
-})
+const createUrlSchema = z.object({ fullUrl: z.url(), ownerId: z.uuid() })
 const getUrlSchema = z.object({ shortUrl: z.string().refine((val) => val.length == 19 && val.startsWith(`${SHORT_URLS.subdomain}.`) && val.endsWith(`.${SHORT_URLS.tld}`)) })
 const delUrlSchema = z.object({ id: z.string() })
 const getUserUrlsSchema = z.object({ ownerId: z.string().min(1) })
-
-export const getAllUrl = async (req: express.Request, res: express.Response) => {
-    try {
-        const shortUrls = await urlModel.find().sort({ createdAt: -1 });
-
-        if (shortUrls.length <= 0) {
-            res.status(404).send({ message: "no short urls found" });
-        } else {
-            res.status(200).send(shortUrls);
-        }
-    } catch (error) {
-        res.status(500).send({ message: "Error on getAllUrl - something went wrong", error });
-    }
-}
 
 export const getUserUrls = async (req: express.Request, res: express.Response) => {
     try {

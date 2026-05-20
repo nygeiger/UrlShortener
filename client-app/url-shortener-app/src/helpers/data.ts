@@ -1,18 +1,6 @@
 import axios from "axios";
 import { SERVER_URL } from "./Constants";
 
-export const fetchTableData = async () => {
-    try {
-        const response = await axios.get(`${SERVER_URL}/shortUrl`);
-        console.log("The response from the server is: ", response);
-        //TODO: Add zod validation (currently redundant - which is a good thing)
-        return response.data
-    } catch (error) {
-        console.log("Error fetching table data:", error);
-    }
-    return [];
-}
-
 export const getUserUrls = async (ownerId: string) => {
     try {
         const response = await axios.get(`${SERVER_URL}/userUrls`, {
