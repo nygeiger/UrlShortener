@@ -2,22 +2,30 @@ import { useEffect, useState } from "react";
 import FormContainer from "../form-container/FormContainer";
 import type { UrlData } from "../../interface/UrlData";
 import DataTable from "../data-table/DataTable";
-import { fetchTableData } from "../../helpers/data";
+import { getUserUrls } from "../../helpers/data";
+import { useOwnerId } from "../../hooks/useOwnerId";
 
 export default function Container() {
     const [data, setData] = useState<UrlData[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
+    const ownerId = useOwnerId();
 
     const refreshTableData = async () => {
         setIsLoading(true);
-        setData(await fetchTableData());
+        if (ownerId) {
+            setData(await getUserUrls(ownerId));
+        }
         setIsLoading(false);
         setCurrentPage(1);
     }
 
-    useEffect(() => { refreshTableData() }, [])
+    useEffect(() => {
+        if (ownerId) {
+            refreshTableData();
+        }
+    }, [ownerId])
 
     return (
         <div className="flex-1">

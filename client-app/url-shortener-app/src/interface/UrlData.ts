@@ -3,6 +3,8 @@ export interface UrlData {
     fullUrl: string;
     shortUrl: string;
     clicks: Number;
+    ownerId: string;
+    expiresAt: Date;
     createdAt: Date;
     updatedAt: Date;
 }
