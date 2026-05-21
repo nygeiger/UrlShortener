@@ -8,6 +8,27 @@ const getUrlSchema = z.object({ shortUrl: z.string().refine((val) => val.length 
 const delUrlSchema = z.object({ id: z.string() })
 const getUserUrlsSchema = z.object({ ownerId: z.string().min(1) })
 
+// * * route: "/"
+
+export const publicRedirect = async (req: express.Request, res: express.Response) => {
+    try {
+        const validParams = getUrlSchema.parse(req.params)
+        const shortUrl = await urlModel.findOne({ shortUrl: validParams.shortUrl })
+
+        if (!shortUrl) {
+            res.status(404).send({ message: "Link not found or has expired" })
+        } else {
+            shortUrl.clicks++;
+            shortUrl.save();
+            res.redirect(`${shortUrl.fullUrl}`)
+        }
+    } catch (error) {
+        res.status(500).send({ message: "Error on publicRedirect - something went wrong", error });
+    }
+}
+
+// * * route: "/api"
+
 export const getUserUrls = async (req: express.Request, res: express.Response) => {
     try {
         const validQuery = getUserUrlsSchema.parse(req.query)

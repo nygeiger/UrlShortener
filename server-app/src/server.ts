@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import connectDb from "./config/dbConfig.js"; // imported after compiling (check pnpm start)
 import shortURL from "./routes/shortUrl.js";
+import { publicRedirect } from "./controller/shortUrl.js";
 
 dotenv.config();
 await connectDb(); //TODO: Handle failed db connection
@@ -15,6 +16,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({ origin: `http://localhost:${clientPort}` }));
 
+app.get("/:shortUrl", publicRedirect);
 app.use("/api/", shortURL);
 
 app.use((err: any, req: express.Request, res: any, next: any) => {

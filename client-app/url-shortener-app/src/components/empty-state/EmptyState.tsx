@@ -11,11 +11,11 @@ export default function EmptyState() {
                     <h3 className="text-xl font-semibold text-gray-300 mb-2">No links yet</h3>
                     <p className="text-gray-400 mb-2">Start saving and shortening links!</p>
                     <p className="text-gray-400">
-                        Don't have one in mind?{" "}
-                        <a href="https://pop-kulture.netlify.app/" target="_blank" rel="noreferrer noopener" className="text-blue-500 hover:text-blue-400 underline">
-                            Try https://pop-kulture.netlify.app/
-                        </a>
+                        Don't have one in mind? Try:{" "}
                     </p>
+                    <a href="https://www.artic.edu/artworks/89503/under-the-wave-off-kanagawa-kanagawa-oki-nami-ura-also-known-as-the-great-wave-from-the-series-thirty-six-views-of-mount-fuji-fugaku-sanjurokkei" target="_blank" rel="noreferrer noopener" className="text-blue-500 hover:text-blue-400 underline">
+                            https://www.artic.edu/artworks/89503/under-the-wave-off-kanagawa-kanagawa-oki-nami-ura-also-known-as-the-great-wave-from-the-series-thirty-six-views-of-mount-fuji-fugaku-sanjurokkei
+                        </a>
                 </div>
             </div>
         </div>
