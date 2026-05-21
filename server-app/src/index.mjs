@@ -6,7 +6,7 @@ import cors from "cors";
 import { configure as serverlessExpress } from "@codegenie/serverless-express";
 import connectDb from "./config/dbConfig.mjs";
 import shortURL from "./routes/shortUrl.mjs";
-import { publicRedirect } from "./controller/shortUrl.js";
+import { publicRedirect } from "./controller/shortUrl.mjs";
 
 let serverlessExpressInstance;
 let cachedDb = null;
@@ -16,8 +16,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 
+app.use("/api", shortURL);
 app.get("/:shortUrl", publicRedirect);
-app.use("/api/", shortURL);
 
 app.use((err, req, res, next) => {
     console.error("Global error handler caught:", err.stack); // Log the full stack trace
