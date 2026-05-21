@@ -23,6 +23,16 @@ export const addUrl = async (fullUrl: string, ownerId: string) => {
     }
 }
 
+export const updateUrlClick = async (tinyUrl: string) => {
+    try {
+        await axios.post(`${SERVER_URL}/shortUrl`, {
+            params: { tinyUrl }
+        });
+    } catch (error) {
+        console.log("Error on form container submit", error);
+    }
+}
+
 export const deleteUrl = async (id: string) => {
     try {
         await axios.delete(`${SERVER_URL}/shortUrl/${id}`)

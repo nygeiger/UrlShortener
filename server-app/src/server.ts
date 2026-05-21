@@ -16,8 +16,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({ origin: `http://localhost:${clientPort}` }));
 
+app.use("/api", shortURL);
 app.get("/:shortUrl", publicRedirect);
-app.use("/api/", shortURL);
 
 app.use((err: any, req: express.Request, res: any, next: any) => {
     console.error("Global error handler caught:", err.stack); // Log the full stack trace

@@ -1,12 +1,13 @@
 import type express from "express"
-import z from "zod"
+import z, { ZodError } from "zod"
 import { urlModel } from "../model/shortUrl.js"
-import { SHORT_URLS } from "../util.js"
+import { notFound, SHORT_URLS } from "../util.js"
 
 const createUrlSchema = z.object({ fullUrl: z.url(), ownerId: z.uuid() })
 const getUrlSchema = z.object({ shortUrl: z.string().refine((val) => val.length == 19 && val.startsWith(`${SHORT_URLS.subdomain}.`) && val.endsWith(`.${SHORT_URLS.tld}`)) })
+const updateUrlClickSchema = z.object({ shortUrl: z.string().refine((val) => val.length == 19 && val.startsWith(`${SHORT_URLS.subdomain}.`) && val.endsWith(`.${SHORT_URLS.tld}`)) })
 const delUrlSchema = z.object({ id: z.string() })
-const getUserUrlsSchema = z.object({ ownerId: z.string().min(1) })
+const getUserUrlsSchema = z.object({ ownerId: z.string().uuid() })
 
 // * * route: "/"
 
@@ -23,7 +24,11 @@ export const publicRedirect = async (req: express.Request, res: express.Response
             res.redirect(`${shortUrl.fullUrl}`)
         }
     } catch (error) {
-        res.status(500).send({ message: "Error on publicRedirect - something went wrong", error });
+        if (error instanceof ZodError) {
+            res.status(404).send(notFound(process.env.FRONT_END_URL as string));
+        } else {
+            res.status(500).send({ message: "Error on publicRedirect - something went wrong", error });
+        }
     }
 }
 
@@ -75,6 +80,23 @@ export const getUrl = async (req: express.Request, res: express.Response) => {
         }
     } catch (error) {
         res.status(500).send({ message: "Error on getUrl - something went wrong", error });
+    }
+}
+
+export const updateUrlClick = async (req: express.Request, res: express.Response) => {
+    try {
+        const validParams = updateUrlClickSchema.parse(req.params)
+        const shortUrl = await urlModel.findOne({ shortUrl: validParams.shortUrl })
+
+        if (!shortUrl) {
+            res.status(404).send({ message: "Link not found or has expired" })
+        } else {
+            shortUrl.clicks++;
+            shortUrl.save();
+            res.status(200).send()
+        }
+    } catch (error) {
+        res.status(500).send({ message: "Error on createUrl - something went wrong", error });
     }
 }
 

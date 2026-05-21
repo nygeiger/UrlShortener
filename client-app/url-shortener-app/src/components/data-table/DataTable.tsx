@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import type { UrlData } from "../../interface/UrlData"
-import { SERVER_URL, PUBLIC_URL } from "../../helpers/Constants";
-import { deleteUrl } from "../../helpers/data";
+import { PUBLIC_URL } from "../../helpers/Constants";
+import { deleteUrl, updateUrlClick } from "../../helpers/data";
 import SkeletonRow from "../skeleton/SkeletonRow";
 import EmptyState from "../empty-state/EmptyState";
 import "../skeleton/skeleton.css";
@@ -16,15 +16,15 @@ interface IDataTableProps {
 }
 
 const copyToClipboard = async (url: string) => {
-        try {
-            const urlString = `${PUBLIC_URL}/${url}`;
-            await navigator.clipboard.writeText(urlString);
-            //TODO: Change alert to a visual cue in dom so that it's more consistent on devices (Change color to green and add "copied" text)
-            alert(`URL copied: ${urlString}`);
-        } catch (error) {
-            console.log("Error copying clipboard: ", error);
-        }
+    try {
+        const urlString = `${PUBLIC_URL}/${url}`;
+        await navigator.clipboard.writeText(urlString);
+        //TODO: Change alert to a visual cue in dom so that it's more consistent on devices (Change color to green and add "copied" text)
+        alert(`URL copied: ${urlString}`);
+    } catch (error) {
+        console.log("Error copying clipboard: ", error);
     }
+}
 
 export default function DataTable(props: IDataTableProps) {
     const { data, isLoading, refreshTableData, currentPage, setCurrentPage, itemsPerPage } = props;
@@ -53,7 +53,7 @@ export default function DataTable(props: IDataTableProps) {
                         <Link to={item.fullUrl} target="_blank" rel="noreferrer noopener">{item.fullUrl}</Link>
                     </td>
                     <td className="px-6 py-3">
-                        <Link to={`${SERVER_URL}/shortUrl/${item.shortUrl}`} target="_blank" rel="noreferrer noopener" onClick={() => refreshTableData()}>{item.shortUrl}</Link>
+                        <Link to={`${PUBLIC_URL}/${item.shortUrl}`} target="_blank" rel="noreferrer noopener" onClick={() => { updateUrlClick(item.shortUrl); refreshTableData() }}>{item.shortUrl}</Link>
                     </td>
                     <td className="px-6 py-3">
                         {item.clicks.toLocaleString()}
@@ -116,11 +116,10 @@ export default function DataTable(props: IDataTableProps) {
                                     <button
                                         key={page}
                                         onClick={() => setCurrentPage(page)}
-                                        className={`w-8 h-8 flex items-center justify-center rounded transition-colors ${
-                                            currentPage === page
-                                                ? "bg-blue-600 text-white"
-                                                : "text-gray-400 hover:text-green-400 border border-grey-400 hover:border-green-400"
-                                        }`}
+                                        className={`w-8 h-8 flex items-center justify-center rounded transition-colors ${currentPage === page
+                                            ? "bg-blue-600 text-white"
+                                            : "text-gray-400 hover:text-green-400 border border-grey-400 hover:border-green-400"
+                                            }`}
                                     >
                                         {page}
                                     </button>
