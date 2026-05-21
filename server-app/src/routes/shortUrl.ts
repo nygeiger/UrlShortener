@@ -1,8 +1,12 @@
 import express, { Router } from "express"
-import { createUrl, deleteUrl, getUrl, getUserUrls } from "../controller/shortUrl.js";
+import { createUrl, deleteUrl, getUrl, getUserUrls, publicRedirect } from "../controller/shortUrl.js";
 
 const router: Router = express.Router();
 
+// * * route: "/"
+router.get("/:shortUrl", publicRedirect);
+
+// * * route: "/api"
 router.get("/userUrls", getUserUrls);
 router.post("/shortUrl", createUrl);
 

@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import type { UrlData } from "../../interface/UrlData"
-import { SERVER_URL } from "../../helpers/Constants";
+import { SERVER_URL, PUBLIC_URL } from "../../helpers/Constants";
 import { deleteUrl } from "../../helpers/data";
 import SkeletonRow from "../skeleton/SkeletonRow";
 import EmptyState from "../empty-state/EmptyState";
@@ -17,7 +17,7 @@ interface IDataTableProps {
 
 const copyToClipboard = async (url: string) => {
         try {
-            const urlString = `${SERVER_URL}/shortUrl/${url}`;
+            const urlString = `${PUBLIC_URL}/${url}`;
             await navigator.clipboard.writeText(urlString);
             //TODO: Change alert to a visual cue in dom so that it's more consistent on devices (Change color to green and add "copied" text)
             alert(`URL copied: ${urlString}`);
