@@ -1,4 +1,4 @@
-# URL-Shortner
+# URL-Shortener
 
 Try it here: https://url-shortener.nylesgeiger.com/
 
