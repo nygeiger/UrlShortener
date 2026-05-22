@@ -4,6 +4,7 @@ import cors from "cors";
 import connectDb from "./config/dbConfig.js"; // imported after compiling (check pnpm start)
 import shortURL from "./routes/shortUrl.js";
 import { publicRedirect } from "./controller/shortUrl.js";
+import { publicRedirectLimiter, apiLimiter, createUrlLimiter, deleteUrlLimiter } from "./middleware/rateLimiter.js";
 
 dotenv.config();
 await connectDb(); //TODO: Handle failed db connection
@@ -16,8 +17,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({ origin: `http://localhost:${clientPort}` }));
 
+// Apply general API rate limiter to all /api routes
+app.use("/api", apiLimiter);
 app.use("/api", shortURL);
-app.get("/:shortUrl", publicRedirect);
+
+// Apply rate limiter to public redirect endpoint
+app.get("/:shortUrl", publicRedirectLimiter, publicRedirect);
 
 app.use((err: any, req: express.Request, res: any, next: any) => {
     console.error("Global error handler caught:", err.stack); // Log the full stack trace
