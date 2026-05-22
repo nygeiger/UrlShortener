@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
+import { useEffect, useRef } from "react";
 import type { UrlData } from "../../interface/UrlData"
 import { PUBLIC_URL } from "../../helpers/Constants";
-import { deleteUrl, updateUrlClick } from "../../helpers/data";
+import { deleteUrl } from "../../helpers/data";
 import SkeletonRow from "../skeleton/SkeletonRow";
 import EmptyState from "../empty-state/EmptyState";
 import "../skeleton/skeleton.css";
@@ -28,6 +29,19 @@ const copyToClipboard = async (url: string) => {
 
 export default function DataTable(props: IDataTableProps) {
     const { data, isLoading, refreshTableData, currentPage, setCurrentPage, itemsPerPage } = props;
+    const refreshFlagRef = useRef(false);
+
+    useEffect(() => {
+        const handleFocus = () => {
+            if (refreshFlagRef.current) {
+                refreshTableData();
+                refreshFlagRef.current = false;
+            }
+        };
+
+        window.addEventListener('focus', handleFocus);
+        return () => window.removeEventListener('focus', handleFocus);
+    }, [refreshTableData]);
 
     const totalPages = Math.ceil(data.length / itemsPerPage);
     const startIndex = (currentPage - 1) * itemsPerPage;
@@ -53,7 +67,7 @@ export default function DataTable(props: IDataTableProps) {
                         <Link to={item.fullUrl} target="_blank" rel="noreferrer noopener">{item.fullUrl}</Link>
                     </td>
                     <td className="px-6 py-3">
-                        <Link to={`${PUBLIC_URL}/${item.shortUrl}`} target="_blank" rel="noreferrer noopener" onClick={() => { updateUrlClick(item.shortUrl); refreshTableData() }}>{item.shortUrl}</Link>
+                        <Link to={`${PUBLIC_URL}/${item.shortUrl}`} target="_blank" rel="noreferrer noopener" onClick={() => refreshFlagRef.current = true}>{item.shortUrl}</Link>
                     </td>
                     <td className="px-6 py-3">
                         {item.clicks.toLocaleString()}
