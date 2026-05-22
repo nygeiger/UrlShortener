@@ -33,9 +33,11 @@ export const updateUrlClick = async (tinyUrl: string) => {
     }
 }
 
-export const deleteUrl = async (id: string) => {
+export const deleteUrl = async (id: string, ownerId: string) => {
     try {
-        await axios.delete(`${SERVER_URL}/shortUrl/${id}`)
+        await axios.delete(`${SERVER_URL}/shortUrl/${id}`, {
+            data: { ownerId }
+        })
     } catch (error) {
         console.log("Error deleting shortUrl: ", error);
     }

@@ -6,7 +6,7 @@ import { notFound, SHORT_URLS } from "../util.js"
 const createUrlSchema = z.object({ fullUrl: z.url(), ownerId: z.uuid() })
 const getUrlSchema = z.object({ shortUrl: z.string().refine((val) => val.length == 19 && val.startsWith(`${SHORT_URLS.subdomain}.`) && val.endsWith(`.${SHORT_URLS.tld}`)) })
 const updateUrlClickSchema = z.object({ shortUrl: z.string().refine((val) => val.length == 19 && val.startsWith(`${SHORT_URLS.subdomain}.`) && val.endsWith(`.${SHORT_URLS.tld}`)) })
-const delUrlSchema = z.object({ id: z.string() })
+const delUrlSchema = z.object({ id: z.string(), ownerId: z.uuid() })
 const getUserUrlsSchema = z.object({ ownerId: z.string().uuid() })
 
 // * * route: "/"
@@ -102,13 +102,20 @@ export const updateUrlClick = async (req: express.Request, res: express.Response
 
 export const deleteUrl = async (req: express.Request, res: express.Response) => {
     try {
-        const reqParams = delUrlSchema.parse(req.params)
-        const shortUrl = await urlModel.findByIdAndDelete({ _id: reqParams.id })
+        const reqParams = delUrlSchema.parse({ id: req.params.id, ownerId: req.body.ownerId })
+        
+        // Fetch the URL first to verify ownership
+        const shortUrl = await urlModel.findById(reqParams.id)
 
-        if (shortUrl) {
-            res.status(204).send({ message: "Requested URL successfully Deleted" })
-        } else {
+        if (!shortUrl) {
             res.status(404).send({ message: "Requested URL not found - Nothing Deleted" })
+        } else if (shortUrl.ownerId !== reqParams.ownerId) {
+            // Verify the user owns this URL
+            res.status(403).send({ message: "Unauthorized - You do not own this URL" })
+        } else {
+            // User owns the URL, safe to delete
+            await urlModel.findByIdAndDelete({ _id: reqParams.id })
+            res.status(204).send({ message: "Requested URL successfully Deleted" })
         }
     } catch (error) {
         res.status(500).send({ message: "Error on deleteUrl - something went wrong", error });
