@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { UrlData } from "../../interface/UrlData"
 import { PUBLIC_URL } from "../../helpers/Constants";
 import { deleteUrl } from "../../helpers/data";
@@ -16,20 +16,23 @@ interface IDataTableProps {
     itemsPerPage: number;
 }
 
-const copyToClipboard = async (url: string) => {
-    try {
-        const urlString = `${PUBLIC_URL}/${url}`;
-        await navigator.clipboard.writeText(urlString);
-        //TODO: Change alert to a visual cue in dom so that it's more consistent on devices (Change color to green and add "copied" text)
-        alert(`URL copied: ${urlString}`);
-    } catch (error) {
-        console.log("Error copying clipboard: ", error);
-    }
-}
-
 export default function DataTable(props: IDataTableProps) {
     const { data, isLoading, refreshTableData, currentPage, setCurrentPage, itemsPerPage } = props;
     const refreshFlagRef = useRef(false);
+    const [copiedId, setCopiedId] = useState<string | null>(null);
+    const copyIdTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+
+    const copyToClipboard = async (id: string, shortUrl: string) => {
+        try {
+            clearTimeout(copyIdTimeoutRef.current)
+            const urlString = `${PUBLIC_URL}/${shortUrl}`;
+            await navigator.clipboard.writeText(urlString);
+            setCopiedId(id);
+            copyIdTimeoutRef.current = setTimeout(() => setCopiedId(null), 2000);
+        } catch (error) {
+            console.log("Error copying clipboard: ", error);
+        }
+    }
 
     useEffect(() => {
         const handleFocus = () => {
@@ -62,7 +65,7 @@ export default function DataTable(props: IDataTableProps) {
 
         return paginatedData.map((item) => {
             return (
-                <tr key={item._id} className="border-b text-white bg-gray-600 hover:bg-white hover:text-gray-800">
+                <tr key={item._id} className="border-b text-white bg-gray-600 hover:bg-gray-200 hover:text-gray-800">
                     <td className="px-6 py-3">
                         <Link to={item.fullUrl} target="_blank" rel="noreferrer noopener">{item.fullUrl}</Link>
                     </td>
@@ -74,11 +77,17 @@ export default function DataTable(props: IDataTableProps) {
                     </td>
                     <td className="px-6 py-3">
                         <div className="flex flex-row gap-2">
-                            <div className="cursor-pointer" onClick={() => copyToClipboard(item.shortUrl)}>
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-6">
+                            <div className="cursor-pointer relative" onClick={() => copyToClipboard(item._id, item.shortUrl)}>
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={`size-6 transition-all duration-500 ${copiedId === item._id ? 'scale-125 text-green-400' : 'hover:text-amber-700'
+                                    }`}>
                                     <path d="M7.5 3.375c0-1.036.84-1.875 1.875-1.875h.375a3.75 3.75 0 0 1 3.75 3.75v1.875C13.5 8.161 14.34 9 15.375 9h1.875A3.75 3.75 0 0 1 21 12.75v3.375C21 17.16 20.16 18 19.125 18h-9.75A1.875 1.875 0 0 1 7.5 16.125V3.375Z" />
                                     <path d="M15 5.25a5.23 5.23 0 0 0-1.279-3.434 9.768 9.768 0 0 1 6.963 6.963A5.23 5.23 0 0 0 17.25 7.5h-1.875A.375.375 0 0 1 15 7.125V5.25ZM4.875 6H6v10.125A3.375 3.375 0 0 0 9.375 19.5H16.5v1.125c0 1.035-.84 1.875-1.875 1.875h-9.75A1.875 1.875 0 0 1 3 20.625V7.875C3 6.839 3.84 6 4.875 6Z" />
                                 </svg>
+                                {copiedId === item._id && (
+                                    <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-green-400 text-gray-900 text-xs font-semibold px-2 py-1 rounded whitespace-nowrap animate-pulse">
+                                        Copied!
+                                    </div>
+                                )}
                             </div>
                             <div className="cursor-pointer" onClick={() => handleDelete(item._id)}>
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
