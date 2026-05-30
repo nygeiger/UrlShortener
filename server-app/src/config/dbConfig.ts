@@ -1,14 +1,12 @@
 import mongoose from "mongoose";
+import { logger } from "../middleware/logger.js";
 
 const connectDb = async () => {
     try {
         const connect = await mongoose.connect(`${process.env.MONGODB_CONNECTION_STRING}`);
-        console.log("Database connected: ",
-            connect.connection.host,
-            connect.connection.name
-        );
+        logger.logInfo(`Database connected: ${connect.connection.host} (${connect.connection.name})`);
     } catch (error) {
-        console.log(error);
+        logger.logError("Failed to connect to database", error);
         process.exit(1);
     }
 }

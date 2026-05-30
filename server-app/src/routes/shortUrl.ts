@@ -1,5 +1,5 @@
 import express, { Router } from "express"
-import { createUrl, deleteUrl, getUrl, getUserUrls, publicRedirect, updateUrlClick } from "../controller/shortUrl.js";
+import { createUrl, deleteUrl, getUrl, getUserUrls, updateUrlClick } from "../controller/shortUrl.js";
 import { createUrlLimiter, deleteUrlLimiter } from "../middleware/rateLimiter.js";
 
 const router: Router = express.Router();

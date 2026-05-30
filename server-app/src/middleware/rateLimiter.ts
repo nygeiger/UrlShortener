@@ -1,5 +1,7 @@
 import rateLimit from "express-rate-limit";
 
+// *: Technically AWS apigateway rate-limits innately
+
 // General rate limiter for public redirect endpoint (IP-based)
 export const publicRedirectLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
