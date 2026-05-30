@@ -4,6 +4,9 @@ import cors from "cors";
 import connectDb from "./config/dbConfig.js"; // imported after compiling (check pnpm start)
 import shortURL from "./routes/shortUrl.js";
 import { publicRedirect } from "./controller/shortUrl.js";
+import { publicRedirectLimiter, apiLimiter } from "./middleware/rateLimiter.js";
+import { sanitizerMiddleware } from "./middleware/sanitizer.js";
+import { logger } from "./middleware/logger.js";
 
 dotenv.config();
 await connectDb(); //TODO: Handle failed db connection
@@ -16,16 +19,25 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({ origin: `http://localhost:${clientPort}` }));
 
+// Apply input sanitization middleware to all routes (prevents injection attacks)
+app.use(sanitizerMiddleware);
+
+// Apply general API rate limiter to all /api routes
+app.use("/api", apiLimiter);
 app.use("/api", shortURL);
-app.get("/:shortUrl", publicRedirect);
+
+// Apply rate limiter to public redirect endpoint
+app.get("/:shortUrl", publicRedirectLimiter, publicRedirect);
 
 app.use((err: any, req: express.Request, res: any, next: any) => {
-    console.error("Global error handler caught:", err.stack); // Log the full stack trace
+    const safeContext = logger.getSafeRequestContext(req);
+    const errorId = logger.logError("Unhandled error", err, safeContext);
+
     if (!res.headersSent) { // Check if a response has already been sent
-        res.status(500).send('Global Handler - Something broke!');
+        res.status(500).send({ message: "Something went wrong. Please try again later.", errorId });
     }
 });
 
 app.listen(serverPort, () => {
-    console.log(`Sever listening on port: ${serverPort}`);
+    logger.logInfo(`Server listening on port: ${serverPort}`);
 })

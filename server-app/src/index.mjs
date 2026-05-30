@@ -7,6 +7,9 @@ import { configure as serverlessExpress } from "@codegenie/serverless-express";
 import connectDb from "./config/dbConfig.mjs";
 import shortURL from "./routes/shortUrl.mjs";
 import { publicRedirect } from "./controller/shortUrl.mjs";
+import { publicRedirectLimiter, apiLimiter } from "./middleware/rateLimiter.mjs";
+import { sanitizerMiddleware } from "./middleware/sanitizer.mjs";
+import { logger } from "./middleware/logger.mjs";
 
 let serverlessExpressInstance;
 let cachedDb = null;
@@ -14,15 +17,24 @@ const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors());
+app.use(cors())
 
+// Apply input sanitization middleware to all routes (prevents injection attacks)
+app.use(sanitizerMiddleware);
+
+// Apply general API rate limiter to all /api routes
+app.use("/api", apiLimiter);
 app.use("/api", shortURL);
-app.get("/:shortUrl", publicRedirect);
+
+// Apply rate limiter to public redirect endpoint
+app.get("/:shortUrl", publicRedirectLimiter, publicRedirect);
 
 app.use((err, req, res, next) => {
-    console.error("Global error handler caught:", err.stack); // Log the full stack trace
+    const safeContext = logger.getSafeRequestContext(req);
+    const errorId = logger.logError("Unhandled error", err, safeContext);
+
     if (!res.headersSent) { // Check if a response has already been sent
-        res.status(500).json({ message: "Global Handler - Something broke! ERROR:", error: err.stack });
+        res.status(500).json({ message: "Something went wrong. Please try again later.", errorId });
     }
 });
 
@@ -31,11 +43,11 @@ async function handleDBConnection(context) {
     context.callbackWaitsForEmptyEventLoop = false;
 
     if (!cachedDb) {
-        console.log("DB connecting...")
+        logger.logInfo("DB connecting...");
         cachedDb = connectDb()
-        console.log("connected to mongo DB")
+        logger.logInfo("Connected to MongoDB");
     } else {
-        console.log("Using cached DB connection");
+        logger.logInfo("Using cached DB connection");
     }
     return cachedDb;
 }

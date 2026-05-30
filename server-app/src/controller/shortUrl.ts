@@ -2,11 +2,12 @@ import type express from "express"
 import z, { ZodError } from "zod"
 import { urlModel } from "../model/shortUrl.js"
 import { notFound, SHORT_URLS } from "../util.js"
+import { logger } from "../middleware/logger.js"
 
 const createUrlSchema = z.object({ fullUrl: z.url(), ownerId: z.uuid() })
 const getUrlSchema = z.object({ shortUrl: z.string().refine((val) => val.length == 19 && val.startsWith(`${SHORT_URLS.subdomain}.`) && val.endsWith(`.${SHORT_URLS.tld}`)) })
 const updateUrlClickSchema = z.object({ shortUrl: z.string().refine((val) => val.length == 19 && val.startsWith(`${SHORT_URLS.subdomain}.`) && val.endsWith(`.${SHORT_URLS.tld}`)) })
-const delUrlSchema = z.object({ id: z.string() })
+const delUrlSchema = z.object({ id: z.string(), ownerId: z.uuid() })
 const getUserUrlsSchema = z.object({ ownerId: z.string().uuid() })
 
 // * * route: "/"
@@ -27,7 +28,8 @@ export const publicRedirect = async (req: express.Request, res: express.Response
         if (error instanceof ZodError) {
             res.status(404).send(notFound(process.env.FRONT_END_URL as string));
         } else {
-            res.status(500).send({ message: "Error on publicRedirect - something went wrong", error });
+            const errorId = logger.logError("Error on publicRedirect", error);
+            res.status(500).send({ message: "Something went wrong. Please try again later.", errorId });
         }
     }
 }
@@ -41,7 +43,8 @@ export const getUserUrls = async (req: express.Request, res: express.Response) =
 
         res.status(200).send(userUrls);
     } catch (error) {
-        res.status(500).send({ message: "Error on getUserUrls - something went wrong", error });
+        const errorId = logger.logError("Error on getUserUrls", error);
+        res.status(500).send({ message: "Something went wrong. Please try again later.", errorId });
     }
 }
 
@@ -62,7 +65,8 @@ export const createUrl = async (req: express.Request, res: express.Response) => 
             res.status(201).send(shortUrl);
         }
     } catch (error) {
-        res.status(500).send({ message: "Error on createUrl - something went wrong", error });
+        const errorId = logger.logError("Error on createUrl", error);
+        res.status(500).send({ message: "Something went wrong. Please try again later.", errorId });
     }
 }
 
@@ -79,7 +83,8 @@ export const getUrl = async (req: express.Request, res: express.Response) => {
             res.redirect(`${shortUrl.fullUrl}`)
         }
     } catch (error) {
-        res.status(500).send({ message: "Error on getUrl - something went wrong", error });
+        const errorId = logger.logError("Error on getUrl", error);
+        res.status(500).send({ message: "Something went wrong. Please try again later.", errorId });
     }
 }
 
@@ -96,21 +101,30 @@ export const updateUrlClick = async (req: express.Request, res: express.Response
             res.status(200).send()
         }
     } catch (error) {
-        res.status(500).send({ message: "Error on createUrl - something went wrong", error });
+        const errorId = logger.logError("Error on updateUrlClick", error);
+        res.status(500).send({ message: "Something went wrong. Please try again later.", errorId });
     }
 }
 
 export const deleteUrl = async (req: express.Request, res: express.Response) => {
     try {
-        const reqParams = delUrlSchema.parse(req.params)
-        const shortUrl = await urlModel.findByIdAndDelete({ _id: reqParams.id })
+        const reqParams = delUrlSchema.parse({ id: req.params.id, ownerId: req.body.ownerId })
 
-        if (shortUrl) {
-            res.status(204).send({ message: "Requested URL successfully Deleted" })
-        } else {
+        // Fetch the URL first to verify ownership
+        const shortUrl = await urlModel.findById(reqParams.id)
+
+        if (!shortUrl) {
             res.status(404).send({ message: "Requested URL not found - Nothing Deleted" })
+        } else if (shortUrl.ownerId !== reqParams.ownerId) {
+            // Verify the user owns this URL
+            res.status(403).send({ message: "Unauthorized - You do not own this URL" })
+        } else {
+            // User owns the URL, safe to delete
+            await urlModel.findByIdAndDelete({ _id: reqParams.id })
+            res.status(204).send({ message: "Requested URL successfully Deleted" })
         }
     } catch (error) {
-        res.status(500).send({ message: "Error on deleteUrl - something went wrong", error });
+        const errorId = logger.logError("Error on deleteUrl", error);
+        res.status(500).send({ message: "Something went wrong. Please try again later.", errorId });
     }
 }
